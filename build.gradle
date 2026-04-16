@@ -37,38 +37,12 @@ dependencies {
     // lenni
     modImplementation "net.lenni0451:LambdaEvents:2.4.2"
     modImplementation "com.github.ben-manes.caffeine:caffeine:3.1.8"
-
-    modCompileOnly "meteordevelopment:baritone:${project.baritone_version}"
-}
-
-def extractNetherPathfinder = tasks.register("extractNetherPathfinder", Jar) {
-    def remappedDir = file(".gradle/loom-cache/remapped_mods/remapped/meteordevelopment")
-    from({
-        fileTree(remappedDir)
-            .matching { include("**/baritone-*.jar") }
-            .filter { !it.name.endsWith("-sources.jar") }
-            .collectMany { jar ->
-                zipTree(jar).matching { include("META-INF/jars/nether-pathfinder-*.jar") }.files.toList()
-            }
-            .collect { zipTree(it) }
-    }) {
-        exclude("fabric.mod.json")
-    }
-    archiveClassifier = "nether-pathfinder-extracted"
-    destinationDirectory = layout.buildDirectory.dir("devlibs")
-    dependsOn("compileJava") // ensure Loom has remapped Baritone first
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
-
-dependencies {
-    modRuntimeOnly "meteordevelopment:baritone:${project.baritone_version}"
-    runtimeOnly(files(extractNetherPathfinder.map { it.archiveFile }))
 }
 
 processResources {
     filesMatching("fabric.mod.json") {
         expand "version": project.version,
-            "mc_version": project.property("minecraft_version")
+                "mc_version": project.property("minecraft_version")
     }
 }
 
