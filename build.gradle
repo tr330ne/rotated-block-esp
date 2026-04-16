@@ -1,0 +1,77 @@
+plugins {
+    id "fabric-loom" version "1.14.9"
+}
+
+
+base {
+    archivesName = project.archives_base_name
+}
+version = project.mod_version
+minecraft_version = project.minecraft_version
+group = project.maven_group
+
+repositories {
+    maven {
+        name = "Meteor Dev Releases"
+        url = "https://maven.meteordev.org/releases"
+    }
+    maven {
+        name = "Meteor Dev Snapshots"
+        url = "https://maven.meteordev.org/snapshots"
+    }
+}
+
+loom {
+    accessWidenerPath = file("src/main/resources/rotatedblockesp.accesswidener")
+}
+
+dependencies {
+    // Fabric
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+    // Meteor
+    modImplementation "meteordevelopment:meteor-client:${project.meteor_version}"
+
+    // lenni
+    modImplementation "net.lenni0451:LambdaEvents:2.4.2"
+    modImplementation "com.github.ben-manes.caffeine:caffeine:3.1.8"
+
+    modCompileOnly "meteordevelopment:baritone:${project.baritone_version}"
+}
+
+def extractNetherPathfinder = tasks.register("extractNetherPathfinder", Jar) {
+    def remappedDir = file(".gradle/loom-cache/remapped_mods/remapped/meteordevelopment")
+    from({
+        fileTree(remappedDir)
+            .matching { include("**/baritone-*.jar") }
+            .filter { !it.name.endsWith("-sources.jar") }
+            .collectMany { jar ->
+                zipTree(jar).matching { include("META-INF/jars/nether-pathfinder-*.jar") }.files.toList()
+            }
+            .collect { zipTree(it) }
+    }) {
+        exclude("fabric.mod.json")
+    }
+    archiveClassifier = "nether-pathfinder-extracted"
+    destinationDirectory = layout.buildDirectory.dir("devlibs")
+    dependsOn("compileJava") // ensure Loom has remapped Baritone first
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+dependencies {
+    modRuntimeOnly "meteordevelopment:baritone:${project.baritone_version}"
+    runtimeOnly(files(extractNetherPathfinder.map { it.archiveFile }))
+}
+
+processResources {
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version,
+            "mc_version": project.property("minecraft_version")
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.encoding("UTF-8")
+}

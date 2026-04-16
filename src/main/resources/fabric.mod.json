@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "rotatedblockesp",
+  "version": "${version}",
+  "name": "RotatedBlockESP",
+  "description": "Shows only rotated blocks.",
+  "authors": [
+    "TreeOne"
+  ],
+  "contact": {
+    "sources": "https://t.me/tr330ne"
+  },
+  "icon": "assets/template/icon.png",
+  "accessWidener": "rotatedblockesp.accesswidener",
+  "environment": "client",
+  "entrypoints": {
+    "meteor": [
+      "treeone.rotatedblockesp.Addon"
+    ]
+  },
+  "custom": {
+    "meteor-client:color": "225,25,25"
+  },
+  "depends": {
+    "java": ">=21",
+    "minecraft": ">=${mc_version}",
+    "meteor-client": "*"
+  }
+}
